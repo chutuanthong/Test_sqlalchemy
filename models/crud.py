@@ -4,8 +4,9 @@ storage = {
 buffer = {
     }
 
+    
 class Query:
-    def __init__(self,data):
+    def __init__(self,data: list,type:str = None):
         self.__data = data
 
     def get_data(self):
@@ -37,22 +38,41 @@ class Query:
                     setattr(data,key,value)
         return self
     
-
     
 
-class Insert:
-    def __init__(self):
-        ...
-class Update:
-    def __init__(self):
-        ...
-class Delete:
-    def __init__(self):
-        ...
+class Execute:
+    def __init__(self,table_schema : object, query_type = None):
+        self.table_schema = table_schema
+        self.query_type = query_type
+    
+    def where(self,query):
+        data_after_where = []
+        left_where_operator = query.left.key 
+        operator = query.operator
+        right_where_operator = query.right.effective_value
+        for data in self.__data:
+            if  operator(getattr(data, left_where_operator),right_where_operator):
+                data_after_where.append(data) 
+        print("\nwhere:",data_after_where)
+        
+        return Query(data_after_where)
+
+def insert(table_schema):
+    return Execute(table_schema,"INSERT")
+
+def update(table_schema):
+    return Execute(table_schema,"UPDATE")
+
+def delete(table_schema):
+    return Execute(table_schema,"DELETE")
+
+
+def select(table_schema):
+    table_name = table_schema.__tablename__
+    print("\nselect" , table_name)
+    return(Query(storage[table_name]))
 
 class MockSQLSession:
-    
-
     def __init__(self) -> None:
         pass
 
@@ -78,11 +98,7 @@ class MockSQLSession:
             self.add(data)
 
     def commit(self):
-        # if buffer:
-        #     buffer[0].id = 1
-        # storage.append(buffer)
-        # buffer = []
-        # return storage[0]
+        global buffer, storage
         for table_name, values in buffer.items():
             if table_name in storage:
                 storage[table_name].extend(values)
@@ -100,13 +116,9 @@ class MockSQLSession:
             table_data = buffer[table_name] 
         return Query(table_data)
     
-    class Select(data):
-        def __init__(self):
-            ...
+    def execute(self, statement, params):
         
-    
-    def execute(self, data: any):
-        return data 
+        return ...
     
     def scalars(self, data: any):
         return data 
@@ -115,5 +127,5 @@ class MockSQLSession:
         return data 
     
     def __str__(self):
-        return f"buffer: {buffer}\nstorage: {storage}\n" 
+        return f"\nbuffer: {buffer}\nstorage: {storage}" 
    
